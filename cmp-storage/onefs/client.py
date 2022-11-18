@@ -1,7 +1,7 @@
 import requests
 from requests import exceptions
 import urllib3
-from session import OneFSMixin
+from onefs.session import OneFSMixin
 import json
 from urllib3.exceptions import InsecureRequestWarning
 from cmp_storage.settings import ONEFS_URL, NFS_ROOT
@@ -54,12 +54,13 @@ def del_path(path):
     except exceptions.HTTPError as e:
         print(e)
 
-def add_nfs(cidr, path):
+
+def add_nfs(path, cidr):
     url = ONEFS_URL + "platform/4/protocols/nfs/exports"
     path = NFS_ROOT + path
     payload = json.dumps({
-        "paths": ["%s".format(path)],
-        "clients": ["%s".format(cidr)]
+        "paths": [path],
+        "clients": [cidr]
     })
     try:
         response = requests.post(url=url, auth=nfs_conn, data=payload, verify=False)
@@ -83,12 +84,13 @@ def del_nfs(id):
 
 def add_aliases(path, aliases):
     url = ONEFS_URL + "platform/2/protocols/nfs/aliases"
+    path = NFS_ROOT + path
     payload = json.dumps({
-        "name": aliases,
+        "name": "/"+aliases,
         "path": path
     })
     try:
-        requests.post(url=url, auth=nfs_conn, data=payload, verify=False)
+        response = requests.post(url=url, auth=nfs_conn, data=payload, verify=False)
     except exceptions.Timeout as e:
         print(e)
     except exceptions.HTTPError as e:
