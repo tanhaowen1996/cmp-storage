@@ -1,0 +1,178 @@
+import requests
+from requests import exceptions
+import urllib3
+from session import OneFSMixin
+import json
+from urllib3.exceptions import InsecureRequestWarning
+from cmp_storage.settings import ONEFS_URL, NFS_ROOT
+
+nfs_conn = OneFSMixin.get_session()
+urllib3.disable_warnings(InsecureRequestWarning)
+
+
+def check_path(path):
+    url = ONEFS_URL + "namespace" + NFS_ROOT + path
+    try:
+        response = requests.get(url=url, auth=nfs_conn,  verify=False)
+        if response.status_code == 404:
+            return False
+        else:
+            return True
+    except exceptions.Timeout as e:
+        print(e)
+    except exceptions.HTTPError as e:
+        print(e)
+
+
+def add_path(path):
+    url = ONEFS_URL + "namespace" + NFS_ROOT + path + "?overwrite=false"
+    url_acl = ONEFS_URL + "namespace" + NFS_ROOT + path + "?acl"
+    headers = {
+        'x-isi-ifs-target-type': 'container'
+    }
+    payload_acl = json.dumps({
+        "authoritative": "mode",
+        "mode": 777
+    })
+    try:
+        response = requests.put(url=url, headers=headers, auth=nfs_conn, verify=False)
+        response_acl = requests.put(url=url_acl, headers=headers, auth=nfs_conn, data=payload_acl, verify=False)
+    except exceptions.Timeout as e:
+        print(e)
+    except exceptions.HTTPError as e:
+        print(e)
+    else:
+        return True
+
+
+def del_path(path):
+    url = ONEFS_URL + "namespace" + NFS_ROOT + path + "?recursive=true"
+    try:
+        requests.delete(url=url, auth=nfs_conn, verify=False)
+    except exceptions.Timeout as e:
+        print(e)
+    except exceptions.HTTPError as e:
+        print(e)
+
+def add_nfs(cidr, path):
+    url = ONEFS_URL + "platform/4/protocols/nfs/exports"
+    path = NFS_ROOT + path
+    payload = json.dumps({
+        "paths": ["%s".format(path)],
+        "clients": ["%s".format(cidr)]
+    })
+    try:
+        response = requests.post(url=url, auth=nfs_conn, data=payload, verify=False)
+    except exceptions.Timeout as e:
+        print(e)
+    except exceptions.HTTPError as e:
+        print(e)
+    else:
+        return response.json().get("id")
+
+
+def del_nfs(id):
+    url = ONEFS_URL + "platform/4/protocols/nfs/exports/" + str(id)
+    try:
+        requests.delete(url=url, auth=nfs_conn, verify=False)
+    except exceptions.Timeout as e:
+        print(e)
+    except exceptions.HTTPError as e:
+        print(e)
+
+
+def add_aliases(path, aliases):
+    url = ONEFS_URL + "platform/2/protocols/nfs/aliases"
+    payload = json.dumps({
+        "name": aliases,
+        "path": path
+    })
+    try:
+        requests.post(url=url, auth=nfs_conn, data=payload, verify=False)
+    except exceptions.Timeout as e:
+        print(e)
+    except exceptions.HTTPError as e:
+        print(e)
+
+
+def del_aliases(aliases):
+    url = ONEFS_URL + "platform/2/protocols/nfs/aliases/" + aliases
+    try:
+        requests.delete(url=url, auth=nfs_conn, verify=False)
+    except exceptions.Timeout as e:
+        print(e)
+    except exceptions.HTTPError as e:
+        print(e)
+
+
+def add_quotas(path, hard):
+    url = ONEFS_URL + "platform/1/quota/quotas"
+    payload = json.dumps({
+        "container": True,
+        "force": False,
+        "enforced": True,
+        "include_snapshots": False,
+        "path": NFS_ROOT + path,
+        "thresholds": {
+            "hard": hard
+        },
+        "thresholds_include_overhead": False,
+        "type": "directory"
+    })
+    try:
+        responese = requests.post(url=url, auth=nfs_conn, data=payload, verify=False)
+    except exceptions.Timeout as e:
+        print(e)
+    except exceptions.HTTPError as e:
+        print(e)
+    else:
+        return responese.json().get(id)
+
+
+def update_quotas(id, hard):
+    url = ONEFS_URL + "platform/1/quota/quotas/" + str(id)
+    payload = json.dumps({
+        "thresholds": {
+            "hard": hard
+        }
+    })
+    try:
+        responese = requests.put(url=url, auth=nfs_conn, data=payload, verify=False)
+    except exceptions.Timeout as e:
+        print(e)
+    except exceptions.HTTPError as e:
+        print(e)
+
+
+def get_usage(id):
+    url = ONEFS_URL + "platform/1/quota/quotas/" + str(id)
+    try:
+        responese = requests.get(url=url, auth=nfs_conn, verify=False)
+    except exceptions.Timeout as e:
+        print(e)
+    except exceptions.HTTPError as e:
+        print(e)
+    else:
+        usage = {
+            "thresholds": responese.json().get("thresholds").get("hard"),
+            "usage": responese.json().get("usage").get("logical")
+        }
+        return usage
+
+
+def del_quotas(id):
+    url = ONEFS_URL + "platform/1/quota/quotas/" + str(id)
+    try:
+        responese = requests.delete(url=url, auth=nfs_conn, verify=False)
+        if responese.status_code == 200 or responese.status_code == 201 or responese.status_code == 204:
+            return True
+        if responese.status_code == 401:
+            return del_quotas(id)
+        if responese.status_code == 404:
+            print("不存在 platform/1/quota/quotas/" + str(id))
+            return True
+    except exceptions.Timeout as e:
+        print(e)
+    except exceptions.HTTPError as e:
+        print(e)
+    return False

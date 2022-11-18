@@ -1,0 +1,10 @@
+django<3.3
+django-filter
+django-netfields
+djangorestframework<3.14
+drf_yasg
+gunicorn
+httptools
+psycopg2-binary
+python-dotenv
+requests
