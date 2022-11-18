@@ -43,22 +43,45 @@ class NFSViewSet(OSCommonModelMixin, viewsets.ModelViewSet):
     serializer_class = NFSSerializer
     queryset = NFS.objects.all().order_by('-created_at')
 
-    # def list(self, request, *args, **kwargs):
-    #     try:
-    #         pass
-    #     except Exception as e:
-    #         pass
+    def get_serializer_class(self):
+        return NFSSerializer
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        qs = qs.filter(provider=self.request.headers.get("Region"))
+        if not self.request.user.is_staff:
+            qs = qs.filter(tenant_id=self.request.headers.get("ProjectId"))
+        return qs
 
     def create(self, request, *args, **kwargs):
         try:
             serializer = self.get_serializer(data=request.data)
             serializer.is_valid(raise_exception=True)
             data = serializer.validated_data
-            cidr = NFS.get_cidr(request.os_conn, data.get('network_id'))
+            cidr, subnet_id = NFS.get_cidr(request.os_conn, data.get('network_id'))
+            project_id = self.request.headers.get("ProjectId")
+            id = NFS.get_id()
+            while NFS.objects.filter(id=id):
+                id = NFS.get_id()
+            nfs = NFS.create_nfs(project_id=project_id, path_id=id, cidr=cidr, name=data['name'])
+
         except Exception as e:
             logger.error(f"try creating NFS ERROR: {e}")
             return Response({
                 "detail": f"{e}"
 
             }, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            serializer.save(
+                id=id,
+                name=data['name'],
+                subnet_id=subnet_id,
+                cidr=cidr,
+                tenant_id=request.tenant.get("id"),
+                network_id=data.get('network_id'),
+                nfs_id=nfs,
+                region=request.tenant.get("region_name")
+            )
+            headers = self.get_success_headers(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
