@@ -8,3 +8,4 @@ local
 *.log
 *.pid
 *.idea/
+cmp-storage/onefs/__pycache__
