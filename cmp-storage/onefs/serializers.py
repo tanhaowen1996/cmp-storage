@@ -14,6 +14,7 @@ class NFSSerializer(serializers.ModelSerializer):
     status = serializers.CharField(required=False)
     nfs_id = serializers.IntegerField(required=False)
     quota_id = serializers.CharField(required=False)
+    region = serializers.CharField(required=False)
 
     class Meta:
         model = NFS
