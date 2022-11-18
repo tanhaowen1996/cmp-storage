@@ -1,7 +1,7 @@
 from django.contrib.postgres.indexes import BrinIndex
 from django.db import models
 from django.utils.translation import gettext_lazy as _
-
+from onefs import client as nfs_client
 
 class NFS(models.Model):
     id = models.CharField(
@@ -48,6 +48,10 @@ class NFS(models.Model):
         null=True,
         max_length=36
     )
+    region = models.CharField(
+        null=True,
+        max_length=36
+    )
     updated_at = models.DateTimeField(
         auto_now=True,
         verbose_name=_('updated time'))
@@ -59,16 +63,34 @@ class NFS(models.Model):
         indexes = (BrinIndex(fields=['updated_at', 'created_at']),)
 
     def get_cidr(os_conn, network_id):
-        import pdb
-        pdb.set_trace()
         network = os_conn.network.get_network(network_id)
-        os_port = os_conn.network.create_port(
-            network_id=network.id,
-            description="Used by LodeBalance VIP",
-            name="LoadBalance_VIP"
-        )
-        os_conn.network.set_tags(
-            os_port,
-            tags=["vip"]
-        )
-        return os_port
+        subnet_id = network.subnet_ids[0]
+        cidr = os_conn.network.get_subnet(subnet_id).cidr
+        return cidr, subnet_id
+
+    def get_id():
+        import uuid
+        array = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+                 "a", "b", "c", "d", "e", "f", "g", "h", "i", "j",
+                 "k", "l", "m", "n", "o", "p", "q", "r", "s", "t",
+                 "u", "v", "w", "x", "y", "z"]
+
+        id = str(uuid.uuid4()).replace("-", "")
+        buffer = []
+
+        for i in range(0, 8):
+            start = i * 4
+            end = i * 4 + 4
+            val = int(id[start:end], 16)
+            buffer.append(array[val % 36])
+        return "".join(buffer)
+
+    def create_nfs(project_id, path_id, cidr, name):
+        if not nfs_client.check_path(path=project_id):
+           nfs_client.add_path(path=project_id)
+        path = project_id + "/" + path_id
+        if not nfs_client.check_path(path=path):
+            nfs_client.add_path(path=path)
+        nfs = nfs_client.add_nfs(path=path, cidr=cidr)
+        nfs_client.add_aliases(path=path, aliases=path_id)
+        return nfs
