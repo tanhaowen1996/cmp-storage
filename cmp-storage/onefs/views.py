@@ -63,7 +63,7 @@ class NFSViewSet(OSCommonModelMixin, viewsets.ModelViewSet):
             id = NFS.get_id()
             while NFS.objects.filter(id=id):
                 id = NFS.get_id()
-            nfs = NFS.create_nfs(project_id=project_id, path_id=id, cidr=cidr, name=data['name'])
+            nfs, quota_id = NFS.create_nfs(project_id=project_id, path_id=id, cidr=cidr)
 
         except Exception as e:
             logger.error(f"try creating NFS ERROR: {e}")
@@ -80,8 +80,38 @@ class NFSViewSet(OSCommonModelMixin, viewsets.ModelViewSet):
                 tenant_id=request.tenant.get("id"),
                 network_id=data.get('network_id'),
                 nfs_id=nfs,
+                quota_id=quota_id,
                 region=request.tenant.get("region_name")
             )
             headers = self.get_success_headers(serializer.data)
             return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        try:
+            instance.delete_nfs(project_id=instance.tenant_id, id=instance.id, nfs_id=instance.nfs_id,
+                           quota_id=instance.quota_id)
+        except Exception as e:
+            logger.error(f"try creating NFS ERROR: {e}")
+            return Response({
+                "detail": f"{e}"
+
+            }, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            self.perform_destroy(instance)
+            return Response("删除成功", status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=['post'])
+    def update_quota(self, request, *args, **kwargs):
+        instance = self.get_object()
+        try:
+            instance.update_quota(quota_id=instance.quota_id, quota=request.data.get('quota'))
+        except Exception as e:
+            logger.error(f"try creating NFS ERROR: {e}")
+            return Response({
+                "detail": f"{e}"
+
+            }, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response("更新成功", status=status.HTTP_201_CREATED)
 
