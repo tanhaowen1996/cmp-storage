@@ -75,7 +75,11 @@ def add_nfs(path, cidr):
 def del_nfs(id):
     url = ONEFS_URL + "platform/4/protocols/nfs/exports/" + str(id)
     try:
-        requests.delete(url=url, auth=nfs_conn, verify=False)
+        response = requests.delete(url=url, auth=nfs_conn, verify=False)
+        if response.status_code == 401:
+            return del_nfs(id=id)
+        else:
+            return True
     except exceptions.Timeout as e:
         print(e)
     except exceptions.HTTPError as e:
@@ -98,7 +102,7 @@ def add_aliases(path, aliases):
 
 
 def del_aliases(aliases):
-    url = ONEFS_URL + "platform/2/protocols/nfs/aliases/" + aliases
+    url = ONEFS_URL + "platform/2/protocols/nfs/aliases/%2F" + aliases
     try:
         requests.delete(url=url, auth=nfs_conn, verify=False)
     except exceptions.Timeout as e:
@@ -128,11 +132,11 @@ def add_quotas(path, hard):
     except exceptions.HTTPError as e:
         print(e)
     else:
-        return responese.json().get(id)
+        return responese.json().get('id')
 
 
-def update_quotas(id, hard):
-    url = ONEFS_URL + "platform/1/quota/quotas/" + str(id)
+def update_quotas(quota_id, hard):
+    url = ONEFS_URL + "platform/1/quota/quotas/" + str(quota_id)
     payload = json.dumps({
         "thresholds": {
             "hard": hard
