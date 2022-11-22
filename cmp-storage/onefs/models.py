@@ -3,6 +3,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from onefs import client as nfs_client
 
+
 class NFS(models.Model):
     id = models.CharField(
         primary_key=True,
@@ -85,7 +86,7 @@ class NFS(models.Model):
             buffer.append(array[val % 36])
         return "".join(buffer)
 
-    def create_nfs(project_id, path_id, cidr, name):
+    def create_nfs(project_id, path_id, cidr):
         if not nfs_client.check_path(path=project_id):
            nfs_client.add_path(path=project_id)
         path = project_id + "/" + path_id
@@ -93,4 +94,15 @@ class NFS(models.Model):
             nfs_client.add_path(path=path)
         nfs = nfs_client.add_nfs(path=path, cidr=cidr)
         nfs_client.add_aliases(path=path, aliases=path_id)
-        return nfs
+        quota_id = nfs_client.add_quotas(path=path, hard=536870912000)
+        return nfs, quota_id
+
+    def delete_nfs(self, project_id, id, nfs_id, quota_id):
+        nfs_client.del_quotas(id=quota_id)
+        nfs_client.del_aliases(aliases=id)
+        path = project_id + "/" + id
+        if nfs_client.del_nfs(id=nfs_id):
+            nfs_client.del_path(path=path)
+
+    def update_quota(self, quota_id, quota):
+        nfs_client.update_quotas(quota_id=quota_id, hard=int(quota)*1024*1024*1024)
