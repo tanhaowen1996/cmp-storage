@@ -111,6 +111,17 @@ def del_aliases(aliases):
         print(e)
 
 
+def get_aliases(aliases):
+    url = ONEFS_URL + "platform/2/protocols/nfs/aliases/%2F" + aliases + "?check=true"
+    try:
+        response = requests.get(url=url, auth=nfs_conn, verify=False)
+    except exceptions.Timeout as e:
+        print(e)
+    except exceptions.HTTPError as e:
+        print(e)
+    else:
+        return response.json().get('aliases')[0].get('health')
+
 def add_quotas(path, hard):
     url = ONEFS_URL + "platform/1/quota/quotas"
     payload = json.dumps({
@@ -150,8 +161,8 @@ def update_quotas(quota_id, hard):
         print(e)
 
 
-def get_usage(id):
-    url = ONEFS_URL + "platform/1/quota/quotas/" + str(id)
+def get_usage(quota_id):
+    url = ONEFS_URL + "platform/1/quota/quotas/" + str(quota_id)
     try:
         responese = requests.get(url=url, auth=nfs_conn, verify=False)
     except exceptions.Timeout as e:
@@ -160,8 +171,8 @@ def get_usage(id):
         print(e)
     else:
         usage = {
-            "thresholds": responese.json().get("thresholds").get("hard"),
-            "usage": responese.json().get("usage").get("logical")
+            "hard": responese.json().get("quotas")[0].get("thresholds").get("hard"),
+            "usage": responese.json().get("quotas")[0].get("usage").get("logical")
         }
         return usage
 
