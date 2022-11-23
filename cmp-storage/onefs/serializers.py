@@ -11,7 +11,7 @@ class NFSSerializer(serializers.ModelSerializer):
     vlan_id = serializers.IntegerField(required=False)
     ip = serializers.CharField(required=False)
     network_id = serializers.CharField(required=False)
-    status = serializers.CharField(required=False)
+    status = serializers.BooleanField(required=False)
     nfs_id = serializers.IntegerField(required=False)
     quota_id = serializers.CharField(required=False)
     region = serializers.CharField(required=False)
