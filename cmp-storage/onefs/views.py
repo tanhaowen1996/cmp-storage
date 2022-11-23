@@ -61,9 +61,12 @@ class NFSViewSet(OSCommonModelMixin, viewsets.ModelViewSet):
             cidr, subnet_id = NFS.get_cidr(request.os_conn, data.get('network_id'))
             project_id = self.request.headers.get("ProjectId")
             id = NFS.get_id()
+            ip = NFS.get_ip()
+            vlan_id = int(cidr.split(".")[2])
             while NFS.objects.filter(id=id):
                 id = NFS.get_id()
             nfs, quota_id = NFS.create_nfs(project_id=project_id, path_id=id, cidr=cidr)
+            nfs_status = NFS.get_status(nfs_id=id)
 
         except Exception as e:
             logger.error(f"try creating NFS ERROR: {e}")
@@ -80,11 +83,66 @@ class NFSViewSet(OSCommonModelMixin, viewsets.ModelViewSet):
                 tenant_id=request.tenant.get("id"),
                 network_id=data.get('network_id'),
                 nfs_id=nfs,
+                ip=ip,
+                status=nfs_status,
+                vlan_id=vlan_id,
                 quota_id=quota_id,
                 region=request.tenant.get("region_name")
             )
             headers = self.get_success_headers(serializer.data)
             return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            data = []
+            for nfs in serializer.data:
+                usage = NFS.get_usage(quota_id=nfs.get('quota_id'))
+                nfs_data = {
+                    "cidr": nfs.get('cidr'),
+                    "createTime": nfs.get('created_at'),
+                    "hard": usage.get('hard'),
+                    "id": nfs.get('id'),
+                    "ip": nfs.get('ip'),
+                    "name": nfs.get('name'),
+                    "path": str(nfs.get('ip')) + ":/" + nfs.get('id'),
+                    "size": usage.get('usage'),
+                    "status": 1,
+                    "tenantId": nfs.get('tenant_id')
+                }
+                data.append(nfs_data)
+            return self.get_paginated_response(data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        try:
+            usage = NFS.get_usage(quota_id=instance.quota_id)
+        except Exception as e:
+            logger.error(f"try creating NFS ERROR: {e}")
+            return Response({
+                "detail": f"{e}"
+
+            }, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            data = {
+                "cidr": instance.cidr,
+                "createTime": instance.created_at,
+                "hard": usage.get('hard'),
+                "id": instance.id,
+                "ip": instance.ip,
+                "name": instance.name,
+                "path": str(instance.ip) + ":/" + instance.id,
+                "size": usage.get('usage'),
+                "status": 1,
+                "tenantId": instance.tenant_id
+            }
+            return Response(data, status=status.HTTP_201_CREATED)
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
