@@ -177,6 +177,7 @@ ONEFS_URL = os.getenv('ONEFS_URL', 'https://10.1.51.203:8080/')
 ONEFS_USER = os.getenv('ONEFS_USER', 'admin')
 ONEFS_PASSWORD = os.getenv('ONEFS_PASSWORD', 'admin')
 NFS_ROOT = os.getenv('NEF_ROOT', '/ifs/')
+NFS_IP = os.getenv('NFS_IP', 'nasfz.yonghui.cn')
 
 
 SWAGGER = bool(int(os.getenv('SWAGGER', 1)))
