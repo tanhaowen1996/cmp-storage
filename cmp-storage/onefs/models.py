@@ -2,6 +2,7 @@ from django.contrib.postgres.indexes import BrinIndex
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from onefs import client as nfs_client
+from cmp_storage.settings import NFS_IP
 
 
 class NFS(models.Model):
@@ -38,9 +39,8 @@ class NFS(models.Model):
         null=True,
         max_length=36
     )
-    status = models.CharField(
-        null=True,
-        max_length=36
+    status = models.BooleanField(
+        null=True
     )
     nfs_id = models.IntegerField(
         null=True
@@ -86,6 +86,15 @@ class NFS(models.Model):
             buffer.append(array[val % 36])
         return "".join(buffer)
 
+    def get_ip():
+        return NFS_IP
+
+    def get_status(nfs_id):
+        if nfs_client.get_aliases(aliases=nfs_id) == "good":
+            return True
+        else:
+            return False
+
     def create_nfs(project_id, path_id, cidr):
         if not nfs_client.check_path(path=project_id):
            nfs_client.add_path(path=project_id)
@@ -106,3 +115,6 @@ class NFS(models.Model):
 
     def update_quota(self, quota_id, quota):
         nfs_client.update_quotas(quota_id=quota_id, hard=int(quota)*1024*1024*1024)
+
+    def get_usage(quota_id):
+       return nfs_client.get_usage(quota_id=quota_id)
