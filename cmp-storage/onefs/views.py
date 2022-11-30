@@ -5,9 +5,7 @@ from .authentication import OSAuthentication
 from .serializers import NFSSerializer
 from .models import NFS
 from .filters import NFSFilter
-from requests import exceptions
 import logging
-import openstack
 
 logger = logging.getLogger(__package__)
 
@@ -148,7 +146,7 @@ class NFSViewSet(OSCommonModelMixin, viewsets.ModelViewSet):
         instance = self.get_object()
         try:
             instance.delete_nfs(project_id=instance.tenant_id, id=instance.id, nfs_id=instance.nfs_id,
-                           quota_id=instance.quota_id)
+                                quota_id=instance.quota_id)
         except Exception as e:
             logger.error(f"try creating NFS ERROR: {e}")
             return Response({
@@ -172,4 +170,3 @@ class NFSViewSet(OSCommonModelMixin, viewsets.ModelViewSet):
             }, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response("更新成功", status=status.HTTP_201_CREATED)
-
