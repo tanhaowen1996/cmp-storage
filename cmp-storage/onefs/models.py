@@ -97,7 +97,7 @@ class NFS(models.Model):
 
     def create_nfs(project_id, path_id, cidr):
         if not nfs_client.check_path(path=project_id):
-           nfs_client.add_path(path=project_id)
+            nfs_client.add_path(path=project_id)
         path = project_id + "/" + path_id
         if not nfs_client.check_path(path=path):
             nfs_client.add_path(path=path)
@@ -117,4 +117,4 @@ class NFS(models.Model):
         nfs_client.update_quotas(quota_id=quota_id, hard=int(quota)*1024*1024*1024)
 
     def get_usage(quota_id):
-       return nfs_client.get_usage(quota_id=quota_id)
+        return nfs_client.get_usage(quota_id=quota_id)
