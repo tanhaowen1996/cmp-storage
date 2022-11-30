@@ -1,5 +1,5 @@
 from requests.auth import HTTPBasicAuth
-from cmp_storage.settings import ONEFS_USER, ONEFS_URL, ONEFS_PASSWORD
+from cmp_storage.settings import ONEFS_USER, ONEFS_PASSWORD
 
 
 class OneFSMixin:
