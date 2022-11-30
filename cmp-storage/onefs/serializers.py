@@ -19,5 +19,3 @@ class NFSSerializer(serializers.ModelSerializer):
     class Meta:
         model = NFS
         fields = '__all__'
-
-
