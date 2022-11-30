@@ -37,9 +37,9 @@ if getattr(settings, 'SWAGGER', False):
         public=True,
         permission_classes=(permissions.AllowAny,))
     urlpatterns += [
-        re_path(rf'^swagger(?P<format>\.json|\.yaml|\.yml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
-        path(f'swagger', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
-        path(f'redoc', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+        re_path(r'^swagger(?P<format>\.json|\.yaml|\.yml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
+        path('swagger', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+        path('redoc', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
     ]
 
 if settings.DEBUG:
