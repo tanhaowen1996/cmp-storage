@@ -35,8 +35,8 @@ def add_path(path):
         "mode": 777
     })
     try:
-        response = requests.put(url=url, headers=headers, auth=nfs_conn, verify=False)
-        response_acl = requests.put(url=url_acl, headers=headers, auth=nfs_conn, data=payload_acl, verify=False)
+        requests.put(url=url, headers=headers, auth=nfs_conn, verify=False)
+        requests.put(url=url_acl, headers=headers, auth=nfs_conn, data=payload_acl, verify=False)
     except exceptions.Timeout as e:
         print(e)
     except exceptions.HTTPError as e:
@@ -94,7 +94,7 @@ def add_aliases(path, aliases):
         "path": path
     })
     try:
-        response = requests.post(url=url, auth=nfs_conn, data=payload, verify=False)
+        requests.post(url=url, auth=nfs_conn, data=payload, verify=False)
     except exceptions.Timeout as e:
         print(e)
     except exceptions.HTTPError as e:
@@ -121,6 +121,7 @@ def get_aliases(aliases):
         print(e)
     else:
         return response.json().get('aliases')[0].get('health')
+
 
 def add_quotas(path, hard):
     url = ONEFS_URL + "platform/1/quota/quotas"
@@ -154,7 +155,7 @@ def update_quotas(quota_id, hard):
         }
     })
     try:
-        responese = requests.put(url=url, auth=nfs_conn, data=payload, verify=False)
+        requests.put(url=url, auth=nfs_conn, data=payload, verify=False)
     except exceptions.Timeout as e:
         print(e)
     except exceptions.HTTPError as e:
