@@ -83,6 +83,7 @@ class NFSViewSet(OSCommonModelMixin, viewsets.ModelViewSet):
                 subnet_id=subnet_id,
                 cidr=cidr,
                 tenant_id=request.tenant.get("id"),
+                tenant_name=request.tenant.get("name"),
                 network_id=data.get('network_id'),
                 nfs_id=nfs,
                 ip=ip,
@@ -113,11 +114,12 @@ class NFSViewSet(OSCommonModelMixin, viewsets.ModelViewSet):
                     "ip": nfs.get('ip'),
                     "name": nfs.get('name'),
                     "path": str(nfs.get('ip')) + ":/" + nfs.get('id'),
-                    "file_size": nfs.get('file_size'),
-                    "file_agreement": nfs.get('file_agreement'),
-                    "usage_size": usage.get('usage'),
+                    "fileSize": nfs.get('file_size'),
+                    "fileAgreement": nfs.get('file_agreement'),
+                    "usageSize": usage.get('usage'),
                     "status": 1,
-                    "tenantId": nfs.get('tenant_id')
+                    "tenantId": nfs.get('tenant_id'),
+                    "tenantName": nfs.get('tenant_name')
                 }
                 data.append(nfs_data)
             return self.get_paginated_response(data)
@@ -144,11 +146,12 @@ class NFSViewSet(OSCommonModelMixin, viewsets.ModelViewSet):
                 "ip": instance.ip,
                 "name": instance.name,
                 "path": str(instance.ip) + ":/" + instance.id,
-                "file_size": instance.file_size,
-                "file_agreement": instance.file_agreement,
-                "usage_size": usage.get('usage'),
+                "fileSize": instance.file_size,
+                "fileAgreement": instance.file_agreement,
+                "usageSize": usage.get('usage'),
                 "status": 1,
-                "tenantId": instance.tenant_id
+                "tenantId": instance.tenant_id,
+                "tenantName": instance.tenant_name
             }
             return Response(data, status=status.HTTP_201_CREATED)
 
