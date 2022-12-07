@@ -2,7 +2,7 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from .authentication import OSAuthentication
-from .serializers import NFSSerializer
+from .serializers import NFSSerializer, UpdateNFSSerializer
 from .models import NFS
 from .filters import NFSFilter
 import logging
@@ -31,14 +31,18 @@ class NFSViewSet(OSCommonModelMixin, viewsets.ModelViewSet):
         Get NFS
 
         update:
-        修改name和描述
+        修改name
 
         destroy:
         drop NFS
+
+        update_quota:
+        修改文件系统容量
     """
     authentication_classes = (OSAuthentication,)
     filterset_class = NFSFilter
     serializer_class = NFSSerializer
+    update_serializer_class = UpdateNFSSerializer
     queryset = NFS.objects.all().order_by('-created_at')
 
     def get_serializer_class(self):
@@ -63,7 +67,7 @@ class NFSViewSet(OSCommonModelMixin, viewsets.ModelViewSet):
             vlan_id = int(cidr.split(".")[2])
             while NFS.objects.filter(id=id):
                 id = NFS.get_id()
-            nfs, quota_id = NFS.create_nfs(project_id=project_id, path_id=id, cidr=cidr)
+            nfs, quota_id = NFS.create_nfs(project_id=project_id, path_id=id, cidr=cidr, file_size=data.get('file_size', 50))
             nfs_status = NFS.get_status(nfs_id=id)
 
         except Exception as e:
@@ -85,7 +89,9 @@ class NFSViewSet(OSCommonModelMixin, viewsets.ModelViewSet):
                 status=nfs_status,
                 vlan_id=vlan_id,
                 quota_id=quota_id,
-                region=request.tenant.get("region_name")
+                region=request.tenant.get("region_name"),
+                file_size=data.get('file_size', 50),
+                file_agreement=data['file_agreement'],
             )
             headers = self.get_success_headers(serializer.data)
             return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
@@ -107,7 +113,8 @@ class NFSViewSet(OSCommonModelMixin, viewsets.ModelViewSet):
                     "ip": nfs.get('ip'),
                     "name": nfs.get('name'),
                     "path": str(nfs.get('ip')) + ":/" + nfs.get('id'),
-                    "size": usage.get('usage'),
+                    "file_size": nfs.get('file_size'),
+                    "usage_size": usage.get('usage'),
                     "status": 1,
                     "tenantId": nfs.get('tenant_id')
                 }
@@ -136,7 +143,8 @@ class NFSViewSet(OSCommonModelMixin, viewsets.ModelViewSet):
                 "ip": instance.ip,
                 "name": instance.name,
                 "path": str(instance.ip) + ":/" + instance.id,
-                "size": usage.get('usage'),
+                "file_size": instance.file_size,
+                "usage_size": usage.get('usage'),
                 "status": 1,
                 "tenantId": instance.tenant_id
             }
@@ -157,6 +165,13 @@ class NFSViewSet(OSCommonModelMixin, viewsets.ModelViewSet):
             self.perform_destroy(instance)
             return Response("删除成功", status=status.HTTP_201_CREATED)
 
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
     @action(detail=True, methods=['post'])
     def update_quota(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -169,4 +184,6 @@ class NFSViewSet(OSCommonModelMixin, viewsets.ModelViewSet):
 
             }, status=status.HTTP_400_BAD_REQUEST)
         else:
+            instance.file_size = request.data.get('quota')
+            instance.save()
             return Response("更新成功", status=status.HTTP_201_CREATED)
