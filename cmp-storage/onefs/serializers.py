@@ -15,7 +15,19 @@ class NFSSerializer(serializers.ModelSerializer):
     nfs_id = serializers.IntegerField(required=False)
     quota_id = serializers.CharField(required=False)
     region = serializers.CharField(required=False)
+    file_agreement = serializers.CharField(required=False)
+    file_size = serializers.CharField(required=False)
 
     class Meta:
         model = NFS
         fields = '__all__'
+
+
+class UpdateNFSSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(required=False)
+
+    class Meta:
+        model = NFS
+        fields = (
+            'name'
+        )
