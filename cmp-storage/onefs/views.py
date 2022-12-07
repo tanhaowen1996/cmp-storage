@@ -114,6 +114,7 @@ class NFSViewSet(OSCommonModelMixin, viewsets.ModelViewSet):
                     "name": nfs.get('name'),
                     "path": str(nfs.get('ip')) + ":/" + nfs.get('id'),
                     "file_size": nfs.get('file_size'),
+                    "file_agreement": nfs.get('file_agreement'),
                     "usage_size": usage.get('usage'),
                     "status": 1,
                     "tenantId": nfs.get('tenant_id')
@@ -144,6 +145,7 @@ class NFSViewSet(OSCommonModelMixin, viewsets.ModelViewSet):
                 "name": instance.name,
                 "path": str(instance.ip) + ":/" + instance.id,
                 "file_size": instance.file_size,
+                "file_agreement": instance.file_agreement,
                 "usage_size": usage.get('usage'),
                 "status": 1,
                 "tenantId": instance.tenant_id
