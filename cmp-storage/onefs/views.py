@@ -117,7 +117,7 @@ class NFSViewSet(OSCommonModelMixin, viewsets.ModelViewSet):
                     "fileSize": nfs.get('file_size'),
                     "fileAgreement": nfs.get('file_agreement'),
                     "usageSize": usage.get('usage'),
-                    "status": 1,
+                    "status": nfs.get('status'),
                     "tenantId": nfs.get('tenant_id'),
                     "tenantName": nfs.get('tenant_name')
                 }
@@ -149,7 +149,7 @@ class NFSViewSet(OSCommonModelMixin, viewsets.ModelViewSet):
                 "fileSize": instance.file_size,
                 "fileAgreement": instance.file_agreement,
                 "usageSize": usage.get('usage'),
-                "status": 1,
+                "status": instance.status,
                 "tenantId": instance.tenant_id,
                 "tenantName": instance.tenant_name
             }
