@@ -28,6 +28,13 @@ class NFS(models.Model):
         null=True,
         max_length=36
     )
+    file_size = models.IntegerField(
+        null=True
+    )
+    file_agreement = models.CharField(
+        null=True,
+        max_length=64
+    )
     vlan_id = models.IntegerField(
         null=True
     )
@@ -95,7 +102,7 @@ class NFS(models.Model):
         else:
             return False
 
-    def create_nfs(project_id, path_id, cidr):
+    def create_nfs(project_id, path_id, cidr, file_size):
         if not nfs_client.check_path(path=project_id):
             nfs_client.add_path(path=project_id)
         path = project_id + "/" + path_id
@@ -103,7 +110,7 @@ class NFS(models.Model):
             nfs_client.add_path(path=path)
         nfs = nfs_client.add_nfs(path=path, cidr=cidr)
         nfs_client.add_aliases(path=path, aliases=path_id)
-        quota_id = nfs_client.add_quotas(path=path, hard=536870912000)
+        quota_id = nfs_client.add_quotas(path=path, hard=int(file_size)*1024*1024*1024)
         return nfs, quota_id
 
     def delete_nfs(self, project_id, id, nfs_id, quota_id):
