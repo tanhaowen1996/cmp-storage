@@ -24,6 +24,10 @@ class NFS(models.Model):
         null=True,
         max_length=36
     )
+    tenant_name = models.CharField(
+        null=True,
+        max_length=64
+    )
     cidr = models.CharField(
         null=True,
         max_length=36
