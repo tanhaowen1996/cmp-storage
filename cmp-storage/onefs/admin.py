@@ -6,4 +6,4 @@ from .models import NFS
 class NFSAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'subnet_id', 'tenant_id', 'cidr', 'vlan_id',
                     'ip', 'network_id', 'status', 'region',
-                    'nfs_id', 'quota_id', 'file_size', 'file_agreement', 'tenant_name')
+                    'nfs_id', 'quota_id', 'file_size', 'file_agreement', 'tenant_name', 'created_user')
