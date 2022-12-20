@@ -93,6 +93,7 @@ class NFSViewSet(OSCommonModelMixin, viewsets.ModelViewSet):
                 region=request.tenant.get("region_name"),
                 file_size=data.get('file_size', 50),
                 file_agreement=data['file_agreement'],
+                created_user=self.request.user
             )
             headers = self.get_success_headers(serializer.data)
             return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
@@ -119,7 +120,8 @@ class NFSViewSet(OSCommonModelMixin, viewsets.ModelViewSet):
                     "usageSize": usage.get('usage'),
                     "status": nfs.get('status'),
                     "tenantId": nfs.get('tenant_id'),
-                    "tenantName": nfs.get('tenant_name')
+                    "tenantName": nfs.get('tenant_name'),
+                    "createdUser": nfs.get('created_user')
                 }
                 data.append(nfs_data)
             return self.get_paginated_response(data)
@@ -140,7 +142,7 @@ class NFSViewSet(OSCommonModelMixin, viewsets.ModelViewSet):
         else:
             data = {
                 "cidr": instance.cidr,
-                "createTime": instance.created_at,
+                "createTime": instance.created_at.now().strftime("%Y-%m-%d %H:%M:%S"),
                 "hard": usage.get('hard'),
                 "id": instance.id,
                 "ip": instance.ip,
@@ -151,7 +153,8 @@ class NFSViewSet(OSCommonModelMixin, viewsets.ModelViewSet):
                 "usageSize": usage.get('usage'),
                 "status": instance.status,
                 "tenantId": instance.tenant_id,
-                "tenantName": instance.tenant_name
+                "tenantName": instance.tenant_name,
+                "createdUser": instance.created_user
             }
             return Response(data, status=status.HTTP_201_CREATED)
 
