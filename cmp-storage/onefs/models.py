@@ -64,6 +64,10 @@ class NFS(models.Model):
         null=True,
         max_length=36
     )
+    created_user = models.CharField(
+        null=True,
+        max_length=64
+    )
     updated_at = models.DateTimeField(
         auto_now=True,
         verbose_name=_('updated time'))
