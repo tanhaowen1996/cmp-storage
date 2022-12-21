@@ -18,7 +18,7 @@ class NFS(models.Model):
     )
     subnet_id = models.CharField(
         null=True,
-        max_length=36
+        max_length=720
     )
     tenant_id = models.CharField(
         null=True,
@@ -30,7 +30,7 @@ class NFS(models.Model):
     )
     cidr = models.CharField(
         null=True,
-        max_length=36
+        max_length=360
     )
     file_size = models.IntegerField(
         null=True
@@ -48,7 +48,7 @@ class NFS(models.Model):
     )
     network_id = models.CharField(
         null=True,
-        max_length=36
+        max_length=720
     )
     status = models.BooleanField(
         null=True
@@ -78,11 +78,16 @@ class NFS(models.Model):
     class Meta:
         indexes = (BrinIndex(fields=['updated_at', 'created_at']),)
 
-    def get_cidr(os_conn, network_id):
-        network = os_conn.network.get_network(network_id)
-        subnet_id = network.subnet_ids[0]
-        cidr = os_conn.network.get_subnet(subnet_id).cidr
-        return cidr, subnet_id
+    def get_cidr(os_conn, network_ids):
+        cidrs = []
+        subnet_ids = []
+        for networkId in network_ids:
+            network = os_conn.network.get_network(networkId)
+            subnet_id = network.subnet_ids[0]
+            cidr = os_conn.network.get_subnet(subnet_id).cidr
+            cidrs.append(cidr)
+            subnet_ids.append(subnet_id)
+        return cidrs, subnet_ids
 
     def get_id():
         import uuid
@@ -110,13 +115,14 @@ class NFS(models.Model):
         else:
             return False
 
-    def create_nfs(project_id, path_id, cidr, file_size):
+    def create_nfs(project_id, path_id, cidrs, file_size):
         if not nfs_client.check_path(path=project_id):
             nfs_client.add_path(path=project_id)
         path = project_id + "/" + path_id
         if not nfs_client.check_path(path=path):
             nfs_client.add_path(path=path)
-        nfs = nfs_client.add_nfs(path=path, cidr=cidr)
+        for cidr in cidrs:
+            nfs = nfs_client.add_nfs(path=path, cidr=cidr)
         nfs_client.add_aliases(path=path, aliases=path_id)
         quota_id = nfs_client.add_quotas(path=path, hard=int(file_size)*1024*1024*1024)
         return nfs, quota_id
