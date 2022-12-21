@@ -61,7 +61,7 @@ class NFSViewSet(OSCommonModelMixin, viewsets.ModelViewSet):
             serializer = self.get_serializer(data=request.data)
             serializer.is_valid(raise_exception=True)
             data = serializer.validated_data
-            network_ids = ast.literal_eval(data.get('network_id'))
+            network_ids = data.get('network_id')
             cidrs, subnet_ids = NFS.get_cidr(request.os_conn, network_ids=network_ids)
             project_id = self.request.headers.get("ProjectId")
             id = NFS.get_id()
