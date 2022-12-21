@@ -60,14 +60,16 @@ class NFSViewSet(OSCommonModelMixin, viewsets.ModelViewSet):
             serializer = self.get_serializer(data=request.data)
             serializer.is_valid(raise_exception=True)
             data = serializer.validated_data
-            cidr, subnet_id = NFS.get_cidr(request.os_conn, data.get('network_id'))
+            import ast
+            network_ids = ast.literal_eval(data.get('network_id'))
+            cidrs, subnet_ids = NFS.get_cidr(request.os_conn, network_ids=network_ids)
             project_id = self.request.headers.get("ProjectId")
             id = NFS.get_id()
             ip = NFS.get_ip()
-            vlan_id = int(cidr.split(".")[2])
+            vlan_id = int(cidrs[0].split(".")[2])
             while NFS.objects.filter(id=id):
                 id = NFS.get_id()
-            nfs, quota_id = NFS.create_nfs(project_id=project_id, path_id=id, cidr=cidr, file_size=data.get('file_size', 50))
+            nfs, quota_id = NFS.create_nfs(project_id=project_id, path_id=id, cidrs=cidrs, file_size=data.get('file_size', 50))
             nfs_status = NFS.get_status(nfs_id=id)
 
         except Exception as e:
@@ -80,11 +82,11 @@ class NFSViewSet(OSCommonModelMixin, viewsets.ModelViewSet):
             serializer.save(
                 id=id,
                 name=data['name'],
-                subnet_id=subnet_id,
-                cidr=cidr,
+                subnet_id=subnet_ids,
+                cidr=cidrs,
                 tenant_id=request.tenant.get("id"),
                 tenant_name=request.tenant.get("name"),
-                network_id=data.get('network_id'),
+                network_id=network_ids,
                 nfs_id=nfs,
                 ip=ip,
                 status=nfs_status,
