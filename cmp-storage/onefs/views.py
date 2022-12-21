@@ -6,6 +6,7 @@ from .serializers import NFSSerializer, UpdateNFSSerializer
 from .models import NFS
 from .filters import NFSFilter
 import logging
+import ast
 
 logger = logging.getLogger(__package__)
 
@@ -60,7 +61,6 @@ class NFSViewSet(OSCommonModelMixin, viewsets.ModelViewSet):
             serializer = self.get_serializer(data=request.data)
             serializer.is_valid(raise_exception=True)
             data = serializer.validated_data
-            import ast
             network_ids = ast.literal_eval(data.get('network_id'))
             cidrs, subnet_ids = NFS.get_cidr(request.os_conn, network_ids=network_ids)
             project_id = self.request.headers.get("ProjectId")
@@ -110,7 +110,7 @@ class NFSViewSet(OSCommonModelMixin, viewsets.ModelViewSet):
             for nfs in serializer.data:
                 usage = NFS.get_usage(quota_id=nfs.get('quota_id'))
                 nfs_data = {
-                    "cidr": nfs.get('cidr'),
+                    "cidr": ast.literal_eval(nfs.get('cidr')),
                     "createTime": nfs.get('created_at'),
                     "hard": usage.get('hard'),
                     "id": nfs.get('id'),
@@ -143,7 +143,7 @@ class NFSViewSet(OSCommonModelMixin, viewsets.ModelViewSet):
             }, status=status.HTTP_400_BAD_REQUEST)
         else:
             data = {
-                "cidr": instance.cidr,
+                "cidr": ast.literal_eval(instance.cidr),
                 "createTime": instance.created_at.now().strftime("%Y-%m-%d %H:%M:%S"),
                 "hard": usage.get('hard'),
                 "id": instance.id,
