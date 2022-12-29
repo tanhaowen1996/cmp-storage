@@ -8,7 +8,7 @@ class NFSSerializer(serializers.ModelSerializer):
     subnet_id = serializers.ListField(required=False)
     tenant_id = serializers.CharField(required=False)
     tenant_name = serializers.CharField(required=False)
-    cidr = serializers.ListField(required=False)
+    cidr = serializers.CharField(required=False)
     vlan_id = serializers.IntegerField(required=False)
     ip = serializers.CharField(required=False)
     network_id = serializers.ListField(required=False)
