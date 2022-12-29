@@ -110,7 +110,7 @@ class NFSViewSet(OSCommonModelMixin, viewsets.ModelViewSet):
             for nfs in serializer.data:
                 usage = NFS.get_usage(quota_id=nfs.get('quota_id'))
                 nfs_data = {
-                    "cidr": ast.literal_eval(nfs.get('cidr')),
+                    "cidr": nfs.get('cidr'),
                     "createTime": nfs.get('created_at'),
                     "hard": usage.get('hard'),
                     "id": nfs.get('id'),
