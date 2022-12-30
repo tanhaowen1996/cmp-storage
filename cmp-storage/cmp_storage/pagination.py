@@ -3,5 +3,5 @@ from rest_framework.pagination import PageNumberPagination as OPageNumberPaginat
 
 class PageNumberPagination(OPageNumberPagination):
     page_size = 10
-    page_size_query_param = 'page_size'
+    page_size_query_param = 'limit'
     max_page_size = 100
