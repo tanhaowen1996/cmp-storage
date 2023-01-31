@@ -78,7 +78,7 @@ class NFS(models.Model):
     class Meta:
         indexes = (BrinIndex(fields=['updated_at', 'created_at']),)
 
-    def get_cidr(os_conn, network_ids):
+    def get_cidr(self, os_conn, network_ids):
         cidrs = []
         subnet_ids = []
         for networkId in network_ids:
@@ -89,7 +89,7 @@ class NFS(models.Model):
             subnet_ids.append(subnet_id)
         return cidrs, subnet_ids
 
-    def get_id():
+    def get_id(self):
         import uuid
         array = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
                  "a", "b", "c", "d", "e", "f", "g", "h", "i", "j",
@@ -106,16 +106,16 @@ class NFS(models.Model):
             buffer.append(array[val % 36])
         return "".join(buffer)
 
-    def get_ip():
+    def get_ip(self):
         return NFS_IP
 
-    def get_status(nfs_id):
+    def get_status(self, nfs_id):
         if nfs_client.get_aliases(aliases=nfs_id) == "good":
             return True
         else:
             return False
 
-    def create_nfs(project_id, path_id, cidrs, file_size):
+    def create_nfs(self, project_id, path_id, cidrs, file_size):
         if not nfs_client.check_path(path=project_id):
             nfs_client.add_path(path=project_id)
         path = project_id + "/" + path_id
@@ -137,5 +137,5 @@ class NFS(models.Model):
     def update_quota(self, quota_id, quota):
         nfs_client.update_quotas(quota_id=quota_id, hard=int(quota)*1024*1024*1024)
 
-    def get_usage(quota_id):
+    def get_usage(self, quota_id):
         return nfs_client.get_usage(quota_id=quota_id)
