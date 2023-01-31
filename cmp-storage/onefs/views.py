@@ -62,15 +62,15 @@ class NFSViewSet(OSCommonModelMixin, viewsets.ModelViewSet):
             serializer.is_valid(raise_exception=True)
             data = serializer.validated_data
             network_ids = data.get('network_id')
-            cidrs, subnet_ids = NFS.get_cidr(request.os_conn, network_ids=network_ids)
+            cidrs, subnet_ids = NFS().get_cidr(os_conn=request.os_conn, network_ids=network_ids)
             project_id = self.request.headers.get("ProjectId")
-            id = NFS.get_id()
-            ip = NFS.get_ip()
+            id = NFS().get_id()
+            ip = NFS().get_ip()
             vlan_id = int(cidrs[0].split(".")[2])
             while NFS.objects.filter(id=id):
-                id = NFS.get_id()
-            nfs, quota_id = NFS.create_nfs(project_id=project_id, path_id=id, cidrs=cidrs, file_size=data.get('file_size', 50))
-            nfs_status = NFS.get_status(nfs_id=id)
+                id = NFS().get_id()
+            nfs, quota_id = NFS().create_nfs(project_id=project_id, path_id=id, cidrs=cidrs, file_size=data.get('file_size', 50))
+            nfs_status = NFS().get_status(nfs_id=id)
 
         except Exception as e:
             logger.error(f"try creating NFS ERROR: {e}")
@@ -108,7 +108,7 @@ class NFSViewSet(OSCommonModelMixin, viewsets.ModelViewSet):
             serializer = self.get_serializer(page, many=True)
             data = []
             for nfs in serializer.data:
-                usage = NFS.get_usage(quota_id=nfs.get('quota_id'))
+                usage = NFS().get_usage(quota_id=nfs.get('quota_id'))
                 nfs_data = {
                     "cidr": ast.literal_eval(nfs.get('cidr')),
                     "createTime": nfs.get('created_at'),
@@ -134,7 +134,7 @@ class NFSViewSet(OSCommonModelMixin, viewsets.ModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         try:
-            usage = NFS.get_usage(quota_id=instance.quota_id)
+            usage = NFS().get_usage(quota_id=instance.quota_id)
         except Exception as e:
             logger.error(f"try creating NFS ERROR: {e}")
             return Response({
