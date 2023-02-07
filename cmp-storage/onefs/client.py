@@ -55,12 +55,12 @@ def del_path(path):
         print(e)
 
 
-def add_nfs(path, cidr):
+def add_nfs(path, cidrs):
     url = ONEFS_URL + "platform/4/protocols/nfs/exports"
     path = NFS_ROOT + path
     payload = json.dumps({
         "paths": [path],
-        "clients": [cidr]
+        "clients": cidrs
     })
     try:
         response = requests.post(url=url, auth=nfs_conn, data=payload, verify=False)
