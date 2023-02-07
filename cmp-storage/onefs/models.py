@@ -121,8 +121,7 @@ class NFS(models.Model):
         path = project_id + "/" + path_id
         if not nfs_client.check_path(path=path):
             nfs_client.add_path(path=path)
-        for cidr in cidrs:
-            nfs = nfs_client.add_nfs(path=path, cidr=cidr)
+        nfs = nfs_client.add_nfs(path=path, cidrs=list(cidrs))
         nfs_client.add_aliases(path=path, aliases=path_id)
         quota_id = nfs_client.add_quotas(path=path, hard=int(file_size)*1024*1024*1024)
         return nfs, quota_id
