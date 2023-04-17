@@ -109,6 +109,9 @@ class NFSViewSet(OSCommonModelMixin, viewsets.ModelViewSet):
             data = []
             for nfs in serializer.data:
                 usage = NFS().get_usage(quota_id=nfs.get('quota_id'))
+                nfs_status = NFS().get_status(nfs_id=nfs.get('id'))
+                nfs_update = NFS.objects.filter(id=nfs.get('id'))
+                nfs_update.update(status=nfs_status)
                 nfs_data = {
                     "cidr": ast.literal_eval(nfs.get('cidr')),
                     "createTime": nfs.get('created_at'),
@@ -120,7 +123,7 @@ class NFSViewSet(OSCommonModelMixin, viewsets.ModelViewSet):
                     "fileSize": nfs.get('file_size'),
                     "fileAgreement": nfs.get('file_agreement'),
                     "usageSize": usage.get('usage'),
-                    "status": nfs.get('status'),
+                    "status": nfs_status,
                     "tenantId": nfs.get('tenant_id'),
                     "tenantName": nfs.get('tenant_name'),
                     "createdUser": nfs.get('created_user')
@@ -142,6 +145,9 @@ class NFSViewSet(OSCommonModelMixin, viewsets.ModelViewSet):
 
             }, status=status.HTTP_400_BAD_REQUEST)
         else:
+            nfs_status = NFS().get_status(nfs_id=instance.id)
+            nfs_update = NFS.objects.filter(id=instance.id)
+            nfs_update.update(status=nfs_status)
             data = {
                 "cidr": ast.literal_eval(instance.cidr),
                 "createTime": instance.created_at.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -153,7 +159,7 @@ class NFSViewSet(OSCommonModelMixin, viewsets.ModelViewSet):
                 "fileSize": instance.file_size,
                 "fileAgreement": instance.file_agreement,
                 "usageSize": usage.get('usage'),
-                "status": instance.status,
+                "status": nfs_status,
                 "tenantId": instance.tenant_id,
                 "tenantName": instance.tenant_name,
                 "createdUser": instance.created_user
