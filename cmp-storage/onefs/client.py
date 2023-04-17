@@ -32,7 +32,7 @@ def add_path(path):
     }
     payload_acl = json.dumps({
         "authoritative": "mode",
-        "mode": 777
+        "mode": "0777"
     })
     try:
         requests.put(url=url, headers=headers, auth=nfs_conn, verify=False)
